@@ -1,0 +1,2 @@
+
+Flag: AzCTF{dairy_decay_mastery}

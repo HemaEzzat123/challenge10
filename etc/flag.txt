@@ -1,0 +1,7 @@
+
+ check :)
+ - Robots.txt 
+ - security.txt
+ - sitemap.xml
+ - flag.txt
+ - flagAZCTF.txt
